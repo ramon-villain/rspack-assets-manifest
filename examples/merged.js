@@ -1,10 +1,10 @@
-const WebpackAssetsManifest = require('webpack-assets-manifest');
+const RspackAssetsManifest = require('rspack-assets-manifest');
 
-const manifest = new WebpackAssetsManifest({
+const manifest = new RspackAssetsManifest({
   output: 'merged-manifest.json',
   merge: true,
   customize(entry, original, manifest, asset) {
-    if ( manifest.isMerging ) {
+    if (manifest.isMerging) {
       // Do something
     }
   },

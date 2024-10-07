@@ -1,6 +1,6 @@
-const WebpackAssetsManifest = require('webpack-assets-manifest');
+const RspackAssetsManifest = require('rspack-assets-manifest');
 
-const manifest = new WebpackAssetsManifest({
+const manifest = new RspackAssetsManifest({
   output: 'transformed-manifest.json',
   transform(assets, manifest) {
     // Attach new properties to `assets` or return something else.
@@ -19,6 +19,6 @@ const manifest = new WebpackAssetsManifest({
       value: 'YourValue',
     });
 
-    assets[ key ] = value;
+    assets[key] = value;
   },
 });

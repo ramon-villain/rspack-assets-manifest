@@ -1,37 +1,34 @@
 'use strict';
 
-const path = require('path');
-const tmpDir = require('os').tmpdir();
+const rspack = require('@rspack/core');
 
-function getTmpDir()
-{
+const path = require('node:path');
+const tmpDir = require('node:os').tmpdir();
+
+function getTmpDir() {
   return tmpDir;
 }
 
-function getWorkspace()
-{
-  return path.join(tmpDir, 'webpack-assets-manifest');
+function getWorkspace() {
+  return path.join(tmpDir, 'rspack-assets-manifest');
 }
 
-function randomString(length)
-{
+function randomString(length) {
   let str = '';
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
 
   while (length--) {
-    str += chars[ Math.floor( Math.random() * chars.length ) ];
+    str += chars[Math.floor(Math.random() * chars.length)];
   }
 
   return str;
 }
 
-function tmpDirPath()
-{
+function tmpDirPath() {
   return path.join(getWorkspace(), randomString(8));
 }
 
-function hello()
-{
+function hello() {
   return {
     mode: 'development',
     entry: {
@@ -47,8 +44,7 @@ function hello()
   };
 }
 
-function client( hashed = false )
-{
+function client(hashed = false) {
   return {
     mode: 'development',
     target: 'web',
@@ -81,10 +77,7 @@ function client( hashed = false )
   };
 }
 
-function styles()
-{
-  const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-
+function styles() {
   return {
     mode: 'development',
     target: 'web',
@@ -107,29 +100,23 @@ function styles()
         },
         {
           test: /\.css$/,
-          use: [
-            MiniCssExtractPlugin.loader,
-            'css-loader',
-          ],
+          use: [rspack.CssExtractRspackPlugin.loader, 'css-loader'],
         },
       ],
     },
     plugins: [
-      new MiniCssExtractPlugin({
+      new rspack.CssExtractRspackPlugin({
         filename: '[name].css',
       }),
     ],
   };
 }
 
-function copy()
-{
-  const CopyPlugin = require('copy-webpack-plugin');
-
+function copy() {
   const config = hello();
 
   config.plugins.push(
-    new CopyPlugin({
+    new rspack.CopyRspackPlugin({
       patterns: [
         {
           from: path.join(__dirname, 'readme.md'),
@@ -142,20 +129,18 @@ function copy()
   return config;
 }
 
-function compression()
-{
+function compression() {
   const CompressionPlugin = require('compression-webpack-plugin');
 
   const config = hello();
 
-  config.plugins.push( new CompressionPlugin() );
+  config.plugins.push(new CompressionPlugin());
 
   return config;
 }
 
-function sri()
-{
-  const SriPlugin = require('webpack-subresource-integrity');
+function sri() {
+  const { SubresourceIntegrityPlugin } = require('rspack-subresource-integrity');
 
   const config = hello();
 
@@ -163,17 +148,16 @@ function sri()
     crossOriginLoading: 'anonymous',
   };
 
-  config.plugins.push( new SriPlugin({
-    hashFuncNames: [ 'sha256' ],
-  }) );
+  config.plugins.push(
+    new SubresourceIntegrityPlugin({
+      hashFuncNames: ['sha256'],
+    }),
+  );
 
   return config;
 }
 
-function complex()
-{
-  const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-
+function complex() {
   return {
     mode: 'development',
     target: 'web',
@@ -205,23 +189,19 @@ function complex()
         },
         {
           test: /\.css$/,
-          use: [
-            MiniCssExtractPlugin.loader,
-            'css-loader',
-          ],
+          use: [rspack.CssExtractRspackPlugin.loader, 'css-loader'],
         },
       ],
     },
     plugins: [
-      new MiniCssExtractPlugin({
+      new rspack.CssExtractRspackPlugin({
         filename: '[name]-HASH.css',
       }),
     ],
   };
 }
 
-function server()
-{
+function server() {
   return {
     mode: 'development',
     target: 'node',
@@ -239,8 +219,7 @@ function server()
   };
 }
 
-function devServer( outputPath )
-{
+function devServer(outputPath) {
   outputPath = outputPath || '/';
 
   const config = server();
@@ -251,14 +230,13 @@ function devServer( outputPath )
   return config;
 }
 
-function multi()
-{
+function multi() {
   const clientConfig = client();
   const serverConfig = server();
 
   clientConfig.output.path = serverConfig.output.path = tmpDirPath();
 
-  return [ clientConfig, serverConfig ];
+  return [clientConfig, serverConfig];
 }
 
 module.exports = {

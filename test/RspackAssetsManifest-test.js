@@ -1,19 +1,19 @@
 'use strict';
 
 const fs = require('fs-extra');
-const path = require('path');
+const path = require('node:path');
 const chalk = require('chalk');
 const { mkdir } = require('node:fs/promises');
 const chai = require('chai');
 const spies = require('chai-spies');
 const { rimraf } = require('rimraf');
-const webpack = require('webpack');
 const { mkdirp: webpack_mkdirp } = require('webpack/lib/util/fs');
 const superagent = require('superagent');
 const configs = require('./fixtures/configs');
 const makeCompiler = require('./fixtures/makeCompiler');
+const { rspack } = require('@rspack/core');
 
-const WebpackAssetsManifest = require('../src/WebpackAssetsManifest');
+const RspackAssetsManifest = require('../src/RspackAssetsManifest');
 const { assert, expect } = chai;
 
 chai.use(spies);
@@ -21,10 +21,10 @@ chai.use(spies);
 const _444 = 0o444;
 const _777 = 0o777;
 
-console.log(chalk`Webpack version: {blueBright.bold %s}`, require('webpack/package.json').version);
+console.log(chalk`@rspack/core version: {blueBright.bold %s}`, require('@rspack/core/package.json').version);
 console.log(
-  chalk`Webpack dev server version: {blueBright.bold %s}`,
-  require('webpack-dev-server/package.json').version,
+  chalk`@rspack/dev-server version: {blueBright.bold %s}`,
+  require('@rspack/dev-server/package.json').version,
 );
 
 function create(config, pluginOptions, comp = makeCompiler) {
@@ -33,15 +33,14 @@ function create(config, pluginOptions, comp = makeCompiler) {
   if (Array.isArray(pluginOptions)) {
     const [options, callback] = pluginOptions;
 
-    manifest = new WebpackAssetsManifest(options);
+    manifest = new RspackAssetsManifest(options);
 
     callback(manifest);
   } else {
-    manifest = new WebpackAssetsManifest(pluginOptions);
+    manifest = new RspackAssetsManifest(pluginOptions);
   }
 
   config.plugins.push(manifest);
-
   const compiler = comp(config);
 
   const run = () =>
@@ -56,7 +55,7 @@ function create(config, pluginOptions, comp = makeCompiler) {
   return { compiler, manifest, run };
 }
 
-describe('WebpackAssetsManifest', function () {
+describe('RspackAssetsManifest', function () {
   beforeEach(() => {
     chai.spy.on(console, 'info', () => {});
     chai.spy.on(console, 'warn', () => {});
@@ -76,7 +75,7 @@ describe('WebpackAssetsManifest', function () {
 
   describe('Methods', function () {
     describe('getExtension()', function () {
-      const manifest = new WebpackAssetsManifest();
+      const manifest = new RspackAssetsManifest();
 
       it('should return the file extension', function () {
         assert.equal('.css', manifest.getExtension('main.css'));
@@ -106,7 +105,7 @@ describe('WebpackAssetsManifest', function () {
     });
 
     describe('toJSON()', function () {
-      const manifest = new WebpackAssetsManifest();
+      const manifest = new RspackAssetsManifest();
 
       it('should return an object', function () {
         assert.deepEqual({}, manifest.toJSON());
@@ -116,7 +115,7 @@ describe('WebpackAssetsManifest', function () {
 
     describe('toString()', function () {
       it('should return a JSON string', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         manifest.hooks.afterOptions.call(manifest.options, manifest);
 
@@ -125,7 +124,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('can use tabs', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           space: '\t',
         });
 
@@ -161,7 +160,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('should return an empty string if manifest has not been applied yet', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         assert.equal('', manifest.getOutputPath());
       });
@@ -169,13 +168,13 @@ describe('WebpackAssetsManifest', function () {
 
     describe('fixKey()', function () {
       it('should replace \\ with /', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         assert.equal('images/Ginger.jpg', manifest.fixKey('images\\Ginger.jpg'));
       });
 
       it('should return the key if not a string', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         assert.equal(1, manifest.fixKey(1));
       });
@@ -183,7 +182,7 @@ describe('WebpackAssetsManifest', function () {
 
     describe('set()', function () {
       it('should add to manifest.assets', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         assert.deepEqual({}, manifest.assets);
 
@@ -200,7 +199,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('should transform backslashes to slashes', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         assert.deepEqual({}, manifest.assets);
 
@@ -217,7 +216,7 @@ describe('WebpackAssetsManifest', function () {
 
     describe('setRaw()', function () {
       it('Uses keys without fixing them', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         manifest.setRaw('\\\\', 'image.jpg');
 
@@ -228,7 +227,7 @@ describe('WebpackAssetsManifest', function () {
 
     describe('has()', function () {
       it('should return a boolean', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           assets: Object.assign({}, require('./fixtures/json/images.json')),
         });
 
@@ -238,7 +237,7 @@ describe('WebpackAssetsManifest', function () {
     });
 
     describe('get()', function () {
-      const manifest = new WebpackAssetsManifest({
+      const manifest = new RspackAssetsManifest({
         assets: Object.assign({}, require('./fixtures/json/images.json')),
       });
 
@@ -259,7 +258,7 @@ describe('WebpackAssetsManifest', function () {
 
     describe('delete()', function () {
       it('removes an asset from the manifest', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         ['some/image.jpg', 'some\\image.jpg'].forEach(key => {
           ['set', 'setRaw'].forEach(method => {
@@ -288,33 +287,33 @@ describe('WebpackAssetsManifest', function () {
         process.argv = originalArgv;
       });
 
-      it('Identifies `webpack serve` from argv', function () {
-        const manifest = new WebpackAssetsManifest();
+      it('Identifies `rspack serve` from argv', function () {
+        const manifest = new RspackAssetsManifest();
 
         assert.isFalse(manifest.inDevServer());
 
-        process.argv = [originalArgv[0], path.join(path.dirname(originalArgv[1]), 'webpack'), 'serve'];
+        process.argv = [originalArgv[0], path.join(path.dirname(originalArgv[1]), 'rspack'), 'serve'];
 
         assert.isTrue(manifest.inDevServer());
       });
 
-      it('Identifies webpack-dev-server from argv', function () {
-        const manifest = new WebpackAssetsManifest();
+      it('Identifies @rspack/dev-server from argv', function () {
+        const manifest = new RspackAssetsManifest();
 
         assert.isFalse(manifest.inDevServer());
 
-        process.argv.push('webpack-dev-server');
+        process.argv.push('@rspackdev-server');
 
         assert.isTrue(manifest.inDevServer());
       });
 
-      it('Identifies webpack-dev-server from outputFileSystem', function () {
+      it('Identifies @rspack/dev-server from outputFileSystem', function () {
         const config = configs.hello();
 
         config.output.path = '/';
 
         const compiler = makeCompiler(config);
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         manifest.apply(compiler);
 
@@ -330,7 +329,7 @@ describe('WebpackAssetsManifest', function () {
 
         Object.setPrototypeOf(compiler.outputFileSystem, null);
 
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         manifest.apply(compiler);
 
@@ -340,12 +339,12 @@ describe('WebpackAssetsManifest', function () {
 
     describe('getProxy()', function () {
       it('Returns a Proxy', function () {
-        const manifest = new WebpackAssetsManifest();
+        const manifest = new RspackAssetsManifest();
 
         [undefined, false, true].forEach(raw => {
           const proxy = manifest.getProxy(raw);
 
-          assert.instanceOf(proxy, WebpackAssetsManifest);
+          assert.instanceOf(proxy, RspackAssetsManifest);
 
           proxy['test'] = 'test';
 
@@ -400,7 +399,7 @@ describe('WebpackAssetsManifest', function () {
       };
 
       it('should turn on sorting', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           assets,
           sortManifest: true,
           space: 0,
@@ -410,7 +409,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('should turn off sorting', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           assets,
           sortManifest: false,
           space: 0,
@@ -422,7 +421,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('should use custom comparison function', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           assets,
           sortManifest: function (left, right) {
             return left.localeCompare(right);
@@ -438,7 +437,7 @@ describe('WebpackAssetsManifest', function () {
 
     describe('fileExtRegex', function () {
       it('should use custom RegExp', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           fileExtRegex: /\.[a-z0-9]+$/i,
         });
 
@@ -447,7 +446,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('should fallback to path.extname', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           fileExtRegex: false,
         });
 
@@ -461,7 +460,7 @@ describe('WebpackAssetsManifest', function () {
       };
 
       it('should remove all entries', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           assets,
           replacer: () => undefined,
         });
@@ -470,7 +469,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('should update values', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           assets,
           space: 0,
           replacer: function (key, value) {
@@ -492,7 +491,7 @@ describe('WebpackAssetsManifest', function () {
       };
 
       it('should set the initial assets data', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           assets: Object.assign({}, require('./fixtures/json/images.json')),
           space: 0,
         });
@@ -595,7 +594,7 @@ describe('WebpackAssetsManifest', function () {
       };
 
       it('can be a string', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           publicPath: 'assets/',
         });
 
@@ -632,7 +631,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('only prefixes strings', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           publicPath: cdn.default,
         });
 
@@ -642,7 +641,7 @@ describe('WebpackAssetsManifest', function () {
       });
 
       it('can be a custom function', function () {
-        const manifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest({
           publicPath: function (val, manifest) {
             if (manifest.getExtension(val).substr(1).toLowerCase()) {
               return cdn.images + val;
@@ -938,7 +937,7 @@ describe('WebpackAssetsManifest', function () {
     });
 
     describe('writeToDisk', function () {
-      it('Uses webpack config options.devServer.writeToDisk when available', async () => {
+      it('Uses rspack config options.devServer.writeToDisk when available', async () => {
         const { manifest } = create(configs.devServer(), {
           writeToDisk: 'auto',
         });
@@ -1108,7 +1107,7 @@ describe('WebpackAssetsManifest', function () {
     });
   });
 
-  describe('Usage with webpack', function () {
+  describe('Usage with rspack', function () {
     it('writes to disk', async () => {
       const { manifest, run } = create(configs.hello(), {
         writeToDisk: true,
@@ -1124,7 +1123,7 @@ describe('WebpackAssetsManifest', function () {
     it('compiler has error if unable to create directory', async () => {
       fs.chmodSync(configs.getWorkspace(), _444);
 
-      const { run } = create(configs.hello(), undefined, webpack);
+      const { run } = create(configs.hello(), undefined, rspack);
 
       const error = await run().catch(error => error);
 
@@ -1146,7 +1145,7 @@ describe('WebpackAssetsManifest', function () {
       const assets = Object.create(null);
       const multiConfig = configs.multi().map(config => {
         config.plugins = [
-          new WebpackAssetsManifest({
+          new RspackAssetsManifest({
             assets,
           }),
         ];
@@ -1154,7 +1153,7 @@ describe('WebpackAssetsManifest', function () {
         return config;
       });
 
-      webpack(multiConfig, function (err) {
+      rspack(multiConfig, function (err) {
         assert.isNull(err, 'Error found in compiler.run');
 
         const manifestPath = multiConfig[0].plugins[0].getOutputPath();
@@ -1208,7 +1207,7 @@ describe('WebpackAssetsManifest', function () {
               };
             },
           },
-          webpack,
+          rspack,
         );
 
         manifest = created.manifest;
@@ -1250,8 +1249,8 @@ describe('WebpackAssetsManifest', function () {
       it('manifests does not contain other manifests', done => {
         const config = configs.complex();
 
-        const manifest = new WebpackAssetsManifest();
-        const integrityManifest = new WebpackAssetsManifest({
+        const manifest = new RspackAssetsManifest();
+        const integrityManifest = new RspackAssetsManifest({
           output: 'reports/integrity-manifest.json',
           integrity: true,
         });
@@ -1303,7 +1302,7 @@ describe('WebpackAssetsManifest', function () {
     it('has error creating directory', async () => {
       fs.chmodSync(configs.getWorkspace(), _444);
 
-      const { run } = create(configs.hello(), undefined, webpack);
+      const { run } = create(configs.hello(), undefined, rspack);
 
       const error = await run().catch(error => error);
 
@@ -1319,7 +1318,7 @@ describe('WebpackAssetsManifest', function () {
         {
           writeToDisk: true,
         },
-        webpack,
+        rspack,
       );
 
       webpack_mkdirp(compiler.outputFileSystem, path.dirname(manifest.getOutputPath()), async err => {
@@ -1339,13 +1338,13 @@ describe('WebpackAssetsManifest', function () {
     });
   });
 
-  describe('Usage with webpack-dev-server', function () {
+  describe('Usage with @rspack/dev-server', function () {
     let originalEnv;
-    let WebpackDevServer;
+    let RspackDevServer;
 
     before(() => {
       originalEnv = { ...process.env };
-      WebpackDevServer = require('webpack-dev-server');
+      RspackDevServer = require('@rspack/dev-server').RspackDevServer;
     });
 
     after(() => {
@@ -1360,9 +1359,9 @@ describe('WebpackAssetsManifest', function () {
     });
 
     it('inDevServer() should return true', done => {
-      const { compiler, manifest } = create(configs.devServer(), undefined, webpack);
+      const { compiler, manifest } = create(configs.devServer(), undefined, rspack);
 
-      const server = new WebpackDevServer(compiler, getOptions());
+      const server = new RspackDevServer(compiler, getOptions());
 
       server.listen(8888, 'localhost', function () {
         server.close();
@@ -1374,9 +1373,9 @@ describe('WebpackAssetsManifest', function () {
     });
 
     it('Should serve the assets manifest JSON file', done => {
-      const { compiler } = create(configs.devServer(configs.tmpDirPath()), undefined, webpack);
+      const { compiler } = create(configs.devServer(configs.tmpDirPath()), undefined, rspack);
 
-      const server = new WebpackDevServer(compiler, getOptions());
+      const server = new RspackDevServer(compiler, getOptions());
 
       server.listen(8888, 'localhost', function () {
         superagent.get('http://localhost:8888/assets/assets-manifest.json').end(function (err, res) {
@@ -1401,10 +1400,10 @@ describe('WebpackAssetsManifest', function () {
           output: path.join(config.output.path, 'manifest.json'),
           writeToDisk: true,
         },
-        webpack,
+        rspack,
       );
 
-      const server = new WebpackDevServer(compiler, getOptions());
+      const server = new RspackDevServer(compiler, getOptions());
 
       server.listen(8888, 'localhost', function () {
         superagent.get('http://localhost:8888/assets/manifest.json').end(function (err) {
@@ -1427,10 +1426,10 @@ describe('WebpackAssetsManifest', function () {
         {
           writeToDisk: true,
         },
-        webpack,
+        rspack,
       );
 
-      const server = new WebpackDevServer(compiler, getOptions());
+      const server = new RspackDevServer(compiler, getOptions());
 
       server.listen(8888, 'localhost', function () {
         superagent.get('http://localhost:8888/assets/assets-manifest.json').end(function (err) {
@@ -1468,7 +1467,7 @@ describe('WebpackAssetsManifest', function () {
     });
 
     it('getCompilationAssets() returns assets and HMR Set', () => {
-      const manifest = new WebpackAssetsManifest();
+      const manifest = new RspackAssetsManifest();
 
       const mainAsset = {
         name: 'main.js',
@@ -1509,7 +1508,7 @@ describe('WebpackAssetsManifest', function () {
     });
   });
 
-  describe('Works with copy-webpack-plugin', () => {
+  describe('Works with CopyRspackPlugin', () => {
     it('Correct filenames are used', async () => {
       const { manifest, run } = create(configs.copy());
 
@@ -1529,11 +1528,11 @@ describe('WebpackAssetsManifest', function () {
     });
   });
 
-  describe('Works with webpack-subresource-integrity', () => {
-    it('Uses integrity value from webpack-subresource-integrity plugin', async () => {
+  describe('Works with rspack-subresource-integrity', () => {
+    it('Uses integrity value from rspack-subresource-integrity plugin', async () => {
       const { manifest, run } = create(configs.sri(), {
         integrity: true,
-        // When using `webpack-subresource-integrity`, this is ignored unless you
+        // When using `rspack-subresource-integrity`, this is ignored unless you
         // also specify `integrityPropertyName` as something other than `integrity`.
         integrityHashes: ['md5'],
       });

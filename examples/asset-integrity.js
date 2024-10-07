@@ -1,6 +1,6 @@
-const WebpackAssetsManifest = require('webpack-assets-manifest');
+const RspackAssetsManifest = require('rspack-assets-manifest');
 
-const manifest = new WebpackAssetsManifest({
+const manifest = new RspackAssetsManifest({
   output: 'asset-integrity-manifest.json',
   integrity: true,
   publicPath: true,

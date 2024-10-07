@@ -1,17 +1,17 @@
-const WebpackAssetsManifest = require('webpack-assets-manifest');
+const RspackAssetsManifest = require('rspack-assets-manifest');
 
-const manifest = new WebpackAssetsManifest({
+const manifest = new RspackAssetsManifest({
   output: 'sorted-manifest.json',
   sortManifest(a, b) {
     // `this` is the manifest instance.
     const extA = this.getExtension(a);
     const extB = this.getExtension(b);
 
-    if ( extA > extB ) {
+    if (extA > extB) {
       return 1;
     }
 
-    if ( extA < extB ) {
+    if (extA < extB) {
       return -1;
     }
 

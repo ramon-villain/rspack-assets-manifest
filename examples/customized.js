@@ -1,15 +1,15 @@
-const WebpackAssetsManifest = require('webpack-assets-manifest');
+const RspackAssetsManifest = require('rspack-assets-manifest');
 
-const manifest = new WebpackAssetsManifest({
+const manifest = new RspackAssetsManifest({
   output: 'customized-manifest.json',
   // This will allow you to customize each individual entry in the manifest.
   customize(entry, original, manifest, asset) {
-    if ( manifest.isMerging ) {
+    if (manifest.isMerging) {
       // Do something
     }
 
     // You can prevent adding items to the manifest by returning false.
-    if ( entry.key.toLowerCase().endsWith('.map') ) {
+    if (entry.key.toLowerCase().endsWith('.map')) {
       return false;
     }
 
