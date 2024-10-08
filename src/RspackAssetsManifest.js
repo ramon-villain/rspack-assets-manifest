@@ -14,7 +14,7 @@ const get = require('lodash.get');
 const has = require('lodash.has');
 const { validate } = require('schema-utils');
 const { AsyncSeriesHook, SyncHook, SyncWaterfallHook } = require('@rspack/lite-tapable');
-const { NormalModule, sources, Compilation} = require('@rspack/core');
+const { NormalModule, sources, Compilation } = require('@rspack/core');
 
 const {
   maybeArrayWrap,
@@ -434,33 +434,51 @@ class RspackAssetsManifest {
    */
   handleProcessAssetsAnalyse(compilation /* , assets */) {
     const { contextRelativeKeys } = this.options;
-    const { assetsInfo, chunkGraph, chunks, compiler, codeGenerationResults } = compilation;
+    const { chunkGraph, chunks, compiler } = compilation;
+    const assets = compilation.getAssets();
+    const sourceFilenameToName = {};
+
+    for (const asset of assets) {
+      const sourceFilename = asset.info.sourceFilename;
+
+      if (!sourceFilename) {
+        continue;
+      }
+
+      sourceFilenameToName[sourceFilename] = asset.name;
+    }
 
     for (const chunk of chunks) {
       const modules = chunkGraph.getChunkModulesIterableBySourceType(chunk, 'asset');
 
       if (modules) {
         for (const module of modules) {
-          const codeGenData = codeGenerationResults.get(module, chunk.runtime).data;
+          const sourceFilename = path.relative(compiler.context, module.userRequest);
+          const filename = sourceFilenameToName[sourceFilename];
+          const asset = compilation.getAsset(filename);
+          const source = compilation.__internal__getAssetSource(filename);
 
-          const { assetInfo = codeGenData.get('assetInfo'), filename = codeGenData.get('filename') } = module.buildInfo;
+          if (!asset) {
+            continue;
+          }
 
           const info = Object.assign(
             {
               rawRequest: module.rawRequest,
-              sourceFilename: path.relative(compiler.context, module.userRequest),
+              sourceFilename,
             },
-            assetInfo,
+            asset.info,
           );
 
-          assetsInfo.set(filename, info);
+          if (source) {
+            compilation.updateAsset(filename, source, info);
+          }
 
-          this.assetNames.set(
-            contextRelativeKeys
-              ? info.sourceFilename
-              : path.join(path.dirname(filename), path.basename(module.userRequest)),
-            filename,
-          );
+          if (contextRelativeKeys && asset) {
+            this.assetNames.set(asset.info.sourceFilename, filename);
+          } else {
+            this.assetNames.set(path.join(path.dirname(filename), path.basename(module.userRequest)), filename);
+          }
         }
       }
     }
@@ -724,12 +742,14 @@ class RspackAssetsManifest {
     const { integrityHashes, integrityPropertyName } = this.options;
 
     for (const asset of compilation.getAssets()) {
-      if (!asset.info[integrityPropertyName]) {
-        // rspack-subresource-integrity stores the integrity hash on the source object.
-        asset.info[integrityPropertyName] =
-          asset.source[integrityPropertyName] || getSRIHash(integrityHashes, asset.source.source());
+      const source = compilation.__internal__getAssetSource(asset.name);
 
-        compilation.assetsInfo.set(asset.name, asset.info);
+      if (!asset.info[integrityPropertyName] && source) {
+        // rspack-subresource-integrity stores the integrity hash on the source object.
+
+        asset.info[integrityPropertyName] = asset.source[integrityPropertyName] || getSRIHash(integrityHashes, source);
+
+        compilation.updateAsset(asset.name, source, asset.info);
       }
     }
   }
@@ -790,11 +810,11 @@ class RspackAssetsManifest {
   inDevServer() {
     const [, rspackPath, serve] = process.argv;
 
-    if (serve === 'serve' && rspackPath && path.basename(rspackPath) === 'rspackPath') {
+    if (serve === 'serve' && rspackPath && path.basename(rspackPath) === 'rspack') {
       return true;
     }
 
-    if (process.argv.some(arg => arg.includes('@rspackPath/dev-server'))) {
+    if (process.argv.some(arg => arg.includes('@rspack/dev-server'))) {
       return true;
     }
 

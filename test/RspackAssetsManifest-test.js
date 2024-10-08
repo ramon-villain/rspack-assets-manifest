@@ -302,7 +302,7 @@ describe('RspackAssetsManifest', function () {
 
         assert.isFalse(manifest.inDevServer());
 
-        process.argv.push('@rspackdev-server');
+        process.argv.push('@rspack/dev-server');
 
         assert.isTrue(manifest.inDevServer());
       });
