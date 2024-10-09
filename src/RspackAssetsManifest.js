@@ -742,14 +742,14 @@ class RspackAssetsManifest {
     const { integrityHashes, integrityPropertyName } = this.options;
 
     for (const asset of compilation.getAssets()) {
-      const source = compilation.__internal__getAssetSource(asset.name);
+      const assetSource = compilation.__internal__getAssetSource(asset.name);
 
-      if (!asset.info[integrityPropertyName] && source) {
+      if (!asset.info[integrityPropertyName] && assetSource) {
         // rspack-subresource-integrity stores the integrity hash on the source object.
 
-        asset.info[integrityPropertyName] = asset.source[integrityPropertyName] || getSRIHash(integrityHashes, source);
+        asset.info[integrityPropertyName] = asset.source[integrityPropertyName] || getSRIHash(integrityHashes, assetSource.source());
 
-        compilation.updateAsset(asset.name, source, asset.info);
+        compilation.updateAsset(asset.name, assetSource, asset.info);
       }
     }
   }
