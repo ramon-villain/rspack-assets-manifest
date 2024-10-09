@@ -236,6 +236,7 @@ class RspackAssetsManifest {
   set(key, value) {
     if (this.isMerging && this.options.merge !== 'customize') {
       // Do not fix the key if merging since it should already be correct.
+
       return this.setRaw(key, value);
     }
 
@@ -272,6 +273,7 @@ class RspackAssetsManifest {
           integrity: get(this, `currentAsset.info.${this.options.integrityPropertyName}`, ''),
         };
       }
+
 
       return this.setRaw(key, value);
     }
@@ -474,11 +476,12 @@ class RspackAssetsManifest {
             compilation.updateAsset(filename, source, info);
           }
 
-          if (contextRelativeKeys && asset) {
-            this.assetNames.set(asset.info.sourceFilename, filename);
-          } else {
-            this.assetNames.set(path.join(path.dirname(filename), path.basename(module.userRequest)), filename);
-          }
+          this.assetNames.set(
+            contextRelativeKeys
+              ? asset.info.sourceFilename
+              : path.join(path.dirname(filename), path.basename(module.userRequest)),
+            filename,
+          );
         }
       }
     }

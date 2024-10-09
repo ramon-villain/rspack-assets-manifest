@@ -1504,6 +1504,7 @@ describe('RspackAssetsManifest', function () {
       await run();
 
       expect(manifest.get('main.js.gz')).to.equal('main.js.gz');
+      expect(manifest.assets).to.have.property('main.js.gz');
     });
   });
 
@@ -1530,7 +1531,11 @@ describe('RspackAssetsManifest', function () {
 
       await run();
 
-      expect(manifest.get('main.js').integrity.startsWith('md5-')).to.be.true;
+      const mainJs = manifest.get('main.js');
+
+      expect(mainJs).to.be.an('object');
+      expect(mainJs.integrity).to.be.a('string');
+      expect(mainJs.integrity).to.match(/^md5-/);
     });
   });
 });
