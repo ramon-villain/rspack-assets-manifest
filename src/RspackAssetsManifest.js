@@ -747,7 +747,8 @@ class RspackAssetsManifest {
       if (!asset.info[integrityPropertyName] && assetSource) {
         // rspack-subresource-integrity stores the integrity hash on the source object.
 
-        asset.info[integrityPropertyName] = asset.source[integrityPropertyName] || getSRIHash(integrityHashes, assetSource.source());
+        asset.info[integrityPropertyName] =
+          asset.source[integrityPropertyName] || getSRIHash(integrityHashes, assetSource.source());
 
         compilation.updateAsset(asset.name, assetSource, asset.info);
       }
@@ -816,6 +817,10 @@ class RspackAssetsManifest {
 
     if (process.argv.some(arg => arg.includes('@rspack/dev-server'))) {
       return true;
+    }
+
+    if (this.options.extra.env) {
+      return this.options.extra.env === 'development';
     }
 
     return get(this, 'compiler.outputFileSystem.constructor.name') === 'MemoryFileSystem';
