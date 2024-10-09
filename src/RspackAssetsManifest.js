@@ -456,7 +456,7 @@ class RspackAssetsManifest {
           const sourceFilename = path.relative(compiler.context, module.userRequest);
           const filename = sourceFilenameToName[sourceFilename];
           const asset = compilation.getAsset(filename);
-          const source = compilation.__internal__getAssetSource(filename);
+          const source = module.originalSource();
 
           if (!asset) {
             continue;
@@ -742,15 +742,13 @@ class RspackAssetsManifest {
     const { integrityHashes, integrityPropertyName } = this.options;
 
     for (const asset of compilation.getAssets()) {
-      const assetSource = compilation.__internal__getAssetSource(asset.name);
-
-      if (!asset.info[integrityPropertyName] && assetSource) {
+      if (!asset.info[integrityPropertyName]) {
         // rspack-subresource-integrity stores the integrity hash on the source object.
 
         asset.info[integrityPropertyName] =
-          asset.source[integrityPropertyName] || getSRIHash(integrityHashes, assetSource.source());
+          asset.source[integrityPropertyName] || getSRIHash(integrityHashes, asset.source.source());
 
-        compilation.updateAsset(asset.name, assetSource, asset.info);
+        compilation.updateAsset(asset.name, asset.source, asset.info);
       }
     }
   }
