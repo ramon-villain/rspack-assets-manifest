@@ -5,10 +5,6 @@ const rspack = require('@rspack/core');
 const path = require('node:path');
 const tmpDir = require('node:os').tmpdir();
 
-function getTmpDir() {
-  return tmpDir;
-}
-
 function getWorkspace() {
   return path.join(tmpDir, 'rspack-assets-manifest');
 }
@@ -139,24 +135,6 @@ function compression() {
   return config;
 }
 
-function sri() {
-  const { SubresourceIntegrityPlugin } = require('rspack-subresource-integrity');
-
-  const config = hello();
-
-  config.output = {
-    crossOriginLoading: 'anonymous',
-  };
-
-  config.plugins.push(
-    new SubresourceIntegrityPlugin({
-      hashFuncNames: ['sha256'],
-    }),
-  );
-
-  return config;
-}
-
 function complex() {
   return {
     mode: 'development',
@@ -246,11 +224,9 @@ module.exports = {
   styles,
   copy,
   compression,
-  sri,
   complex,
   devServer,
   multi,
-  getTmpDir,
   tmpDirPath,
   getWorkspace,
 };
