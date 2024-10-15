@@ -89,7 +89,6 @@
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
     "superagent": "^8.1.2",
-    "typescript": "^5.3.3",
-    "rspack-subresource-integrity": "^5.2.0-beta.0"
+    "typescript": "^5.3.3"
   }
 }

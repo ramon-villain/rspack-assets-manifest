@@ -103,9 +103,6 @@ devDependencies:
   rimraf:
     specifier: ^5.0.5
     version: 5.0.5
-  rspack-subresource-integrity:
-    specifier: ^5.2.0-beta.0
-    version: 5.2.0-beta.0
   superagent:
     specifier: ^8.1.2
     version: 8.1.2
@@ -3648,16 +3645,6 @@ packages:
     hasBin: true
     dependencies:
       glob: 10.3.10
-    dev: true
-
-  /rspack-subresource-integrity@5.2.0-beta.0:
-    resolution: {integrity: sha512-BOnIJL8TtsNvkaQQAZpmDcKF8+Is2fSYYhZNOGaOREO+2679Pa3SY8uMYrqP37JT2hFK0qILJ2WA5MvFUd5l0w==}
-    engines: {node: '>= 12'}
-    peerDependencies:
-      html-webpack-plugin: '>= 5.0.0-beta.1 < 6'
-    peerDependenciesMeta:
-      html-webpack-plugin:
-        optional: true
     dev: true
 
   /run-applescript@7.0.0:

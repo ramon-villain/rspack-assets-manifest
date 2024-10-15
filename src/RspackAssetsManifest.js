@@ -746,10 +746,7 @@ class RspackAssetsManifest {
 
     for (const asset of compilation.getAssets()) {
       if (!asset.info[integrityPropertyName]) {
-        // rspack-subresource-integrity stores the integrity hash on the source object.
-
-        asset.info[integrityPropertyName] =
-          asset.source[integrityPropertyName] || getSRIHash(integrityHashes, asset.source.source());
+        asset.info[integrityPropertyName] = getSRIHash(integrityHashes, asset.source.source());
 
         compilation.updateAsset(asset.name, asset.source, asset.info);
       }

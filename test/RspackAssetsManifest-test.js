@@ -1507,35 +1507,4 @@ describe('RspackAssetsManifest', function () {
       expect(manifest.assets).to.have.property('main.js.gz');
     });
   });
-
-  describe('Works with rspack-subresource-integrity', () => {
-    it('Uses integrity value from rspack-subresource-integrity plugin', async () => {
-      const { manifest, run } = create(configs.sri(), {
-        integrity: true,
-        // When using `rspack-subresource-integrity`, this is ignored unless you
-        // also specify `integrityPropertyName` as something other than `integrity`.
-        integrityHashes: ['md5'],
-      });
-
-      await run();
-
-      expect(manifest.get('main.js').integrity.startsWith('sha256-')).to.be.true;
-    });
-
-    it('Uses integrity value from this plugin', async () => {
-      const { manifest, run } = create(configs.sri(), {
-        integrity: true,
-        integrityPropertyName: 'md5',
-        integrityHashes: ['md5'],
-      });
-
-      await run();
-
-      const mainJs = manifest.get('main.js');
-
-      expect(mainJs).to.be.an('object');
-      expect(mainJs.integrity).to.be.a('string');
-      expect(mainJs.integrity).to.match(/^md5-/);
-    });
-  });
 });
