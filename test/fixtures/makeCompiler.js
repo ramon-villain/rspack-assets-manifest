@@ -1,11 +1,10 @@
 'use strict';
 
-const webpack = require('webpack');
+const { rspack } = require('@rspack/core');
 const MemoryFs = require('memory-fs');
 
-function makeCompiler( config )
-{
-  const compiler = webpack( config );
+function makeCompiler(config) {
+  const compiler = rspack(config);
 
   compiler.outputFileSystem = new MemoryFs();
 

@@ -1,6 +1,6 @@
 {
-  "title": "Webpack Assets Manifest options schema",
-  "description": "Webpack Assets Manifest options",
+  "title": "Rspack Assets Manifest options schema",
+  "description": "Rspack Assets Manifest options",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -148,11 +148,7 @@
       "items": {
         "type": "string"
       },
-      "default": [
-        "sha256",
-        "sha384",
-        "sha512"
-      ]
+      "default": ["sha256", "sha384", "sha512"]
     },
     "integrityPropertyName": {
       "type": "string",

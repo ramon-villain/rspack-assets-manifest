@@ -6,14 +6,15 @@
 
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const url = require('url');
+const fs = require('node:fs');
+const path = require('node:path');
+const url = require('node:url');
 
 const get = require('lodash.get');
 const has = require('lodash.has');
 const { validate } = require('schema-utils');
-const { AsyncSeriesHook, SyncHook, SyncWaterfallHook } = require('tapable');
+const { AsyncSeriesHook, SyncHook, SyncWaterfallHook } = require('@rspack/lite-tapable');
+const { NormalModule, sources, Compilation} = require('@rspack/core');
 
 const {
   maybeArrayWrap,
@@ -33,16 +34,16 @@ const {
 const optionsSchema = require('./options-schema.json');
 
 const IS_MERGING = Symbol('isMerging');
-const PLUGIN_NAME = 'WebpackAssetsManifest';
+const PLUGIN_NAME = 'RspackAssetsManifest';
 
-class WebpackAssetsManifest {
+class RspackAssetsManifest {
   /**
-   * @param {object} options - configuration options
+   * @param {import('@rspack/core').MultiRspackOptions | import('@rspack/core').RspackOptions} options - configuration options
    * @constructor
    */
   constructor(options = {}) {
     /**
-     * This is using hooks from {@link https://github.com/webpack/tapable Tapable}.
+     * This is using hooks from {@link https://github.com/@rspack/lite-tappable}.
      */
     this.hooks = Object.freeze({
       apply: new SyncHook(['manifest']),
@@ -101,7 +102,7 @@ class WebpackAssetsManifest {
   /**
    * Hook into the Webpack compiler
    *
-   * @param  {object} compiler - The Webpack compiler object
+   * @param  {import('@rspack/core').Compiler} compiler - The Webpack compiler object
    */
   apply(compiler) {
     this.compiler = compiler;
@@ -184,7 +185,7 @@ class WebpackAssetsManifest {
   /**
    * Get the file extension.
    *
-   * @param  {string} filename
+   * @param  {import('@rspack/core').Filename} filename
    * @return {string}
    */
   getExtension(filename) {
@@ -397,7 +398,7 @@ class WebpackAssetsManifest {
   /**
    * Emit the assets manifest
    *
-   * @param {object} compilation
+   * @param {import('@rspack/core').Compilation} compilation
    */
   async emitAssetsManifest(compilation) {
     const outputPath = this.getOutputPath();
@@ -415,7 +416,7 @@ class WebpackAssetsManifest {
 
     this.maybeMerge();
 
-    compilation.emitAsset(output, new compilation.compiler.webpack.sources.RawSource(this.toString(), false), {
+    compilation.emitAsset(output, new sources.RawSource(this.toString(), false), {
       assetsManifest: true,
       generated: true,
       generatedBy: [PLUGIN_NAME],
@@ -429,7 +430,7 @@ class WebpackAssetsManifest {
   /**
    * Record details of Asset Modules
    *
-   * @param {*} compilation
+   * @param {import('@rspack/core').Compilation} compilation
    */
   handleProcessAssetsAnalyse(compilation /* , assets */) {
     const { contextRelativeKeys } = this.options;
@@ -470,7 +471,7 @@ class WebpackAssetsManifest {
    * get called and so the asset names are not recorded. To work around this, lets
    * loops over the stats.assets and record the asset names.
    *
-   * @param {Object[]} assets
+   * @param {(import('@rspack/core').StatsAsset)[]} assets
    */
   processStatsAssets(assets) {
     const { contextRelativeKeys } = this.options;
@@ -490,9 +491,9 @@ class WebpackAssetsManifest {
   /**
    * Get assets and hot module replacement files from a compilation object
    *
-   * @param {*} compilation
+   * @param {import('@rspack/core').Compilation} compilation
    *
-   * @returns {object}
+   * @returns {{ assets: import('@rspack/core').Asset[], hmrFiles: Set<string> }}
    */
   getCompilationAssets(compilation) {
     const hmrFiles = new Set();
@@ -516,7 +517,7 @@ class WebpackAssetsManifest {
   /**
    * Gather asset details
    *
-   * @param {object} compilation
+   * @param {import('@rspack/core').Compilation} compilation
    */
   async handleProcessAssetsReport(compilation) {
     // Look in DefaultStatsPresetPlugin.js for options
@@ -606,8 +607,8 @@ class WebpackAssetsManifest {
   /**
    * Get the parsed output path. [hash] is supported.
    *
-   * @param  {object} compilation - the Webpack compilation object
-   * @param  {string} filename
+   * @param  {import('@rspack/core').Compilation} compilation - the Webpack compilation object
+   * @param  {import('@rspack/core').Filename} filename
    * @return {string}
    */
   getManifestPath(compilation, filename) {
@@ -636,7 +637,7 @@ class WebpackAssetsManifest {
   }
 
   /**
-   * Cleanup before running Webpack
+   * Cleanup before running rspack
    */
   handleWatchRun() {
     this.clear();
@@ -645,7 +646,7 @@ class WebpackAssetsManifest {
   /**
    * Determine if the manifest should be written to disk with fs.
    *
-   * @param {object} compilation
+   * @param {import('@rspack/core').Compilation} compilation
    * @return {boolean}
    */
   shouldWriteToDisk(compilation) {
@@ -676,7 +677,7 @@ class WebpackAssetsManifest {
   /**
    * Last chance to write the manifest to disk.
    *
-   * @param  {object} compilation - the Webpack compilation object
+   * @param  {import('@rspack/core').Compilation} compilation - the Webpack compilation object
    */
   async handleAfterEmit(compilation) {
     if (this.shouldWriteToDisk(compilation)) {
@@ -687,9 +688,9 @@ class WebpackAssetsManifest {
   /**
    * Record asset names
    *
-   * @param  {object} compilation
-   * @param  {object} loaderContext
-   * @param  {object} module
+   * @param  {import('@rspack/core').Compilation} compilation
+   * @param  {import('@rspack/core').LoaderContext} loaderContext
+   * @param  {import('@rspack/core').Module} module
    */
   handleNormalModuleLoader(compilation, loaderContext, module) {
     const emitFile = loaderContext.emitFile.bind(module);
@@ -717,14 +718,14 @@ class WebpackAssetsManifest {
   /**
    * Add the SRI hash to the assetsInfo map
    *
-   * @param {object} compilation
+   * @param {import('@rspack/core').Compilation} compilation
    */
   recordSubresourceIntegrity(compilation) {
     const { integrityHashes, integrityPropertyName } = this.options;
 
     for (const asset of compilation.getAssets()) {
       if (!asset.info[integrityPropertyName]) {
-        // webpack-subresource-integrity stores the integrity hash on the source object.
+        // rspack-subresource-integrity stores the integrity hash on the source object.
         asset.info[integrityPropertyName] =
           asset.source[integrityPropertyName] || getSRIHash(integrityHashes, asset.source.source());
 
@@ -736,10 +737,10 @@ class WebpackAssetsManifest {
   /**
    * Hook into compilation objects
    *
-   * @param  {object} compilation - the Webpack compilation object
+   * @param  {import('@rspack/core').Compilation} compilation - the Webpack compilation object
    */
   handleCompilation(compilation) {
-    compilation.compiler.webpack.NormalModule.getCompilationHooks(compilation).loader.tap(
+    NormalModule.getCompilationHooks(compilation).loader.tap(
       PLUGIN_NAME,
       this.handleNormalModuleLoader.bind(this, compilation),
     );
@@ -747,7 +748,7 @@ class WebpackAssetsManifest {
     compilation.hooks.processAssets.tap(
       {
         name: PLUGIN_NAME,
-        stage: compilation.compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ANALYSE,
+        stage: Compilation.PROCESS_ASSETS_STAGE_ANALYSE,
       },
       this.handleProcessAssetsAnalyse.bind(this, compilation),
     );
@@ -756,14 +757,14 @@ class WebpackAssetsManifest {
   /**
    * Hook into the compilation object
    *
-   * @param  {object} compilation - the Webpack compilation object
+   * @param  {import('@rspack/core').Compilation} compilation - the Webpack compilation object
    */
   handleThisCompilation(compilation) {
     if (this.options.integrity) {
       compilation.hooks.processAssets.tap(
         {
           name: PLUGIN_NAME,
-          stage: compilation.compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ANALYSE,
+          stage: Compilation.PROCESS_ASSETS_STAGE_ANALYSE,
         },
         this.recordSubresourceIntegrity.bind(this, compilation),
       );
@@ -772,14 +773,14 @@ class WebpackAssetsManifest {
     compilation.hooks.processAssets.tapPromise(
       {
         name: PLUGIN_NAME,
-        stage: compilation.compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT,
+        stage: Compilation.PROCESS_ASSETS_STAGE_REPORT,
       },
       this.handleProcessAssetsReport.bind(this, compilation),
     );
   }
 
   /**
-   * Determine if webpack-dev-server is being used
+   * Determine if @rspack/dev-server is being used
    *
    * The WEBPACK_DEV_SERVER / WEBPACK_SERVE env vars cannot be relied upon.
    * See issue {@link https://github.com/webdeveric/webpack-assets-manifest/issues/125|#125}
@@ -787,13 +788,13 @@ class WebpackAssetsManifest {
    * @return {boolean}
    */
   inDevServer() {
-    const [, webpackPath, serve] = process.argv;
+    const [, rspackPath, serve] = process.argv;
 
-    if (serve === 'serve' && webpackPath && path.basename(webpackPath) === 'webpack') {
+    if (serve === 'serve' && rspackPath && path.basename(rspackPath) === 'rspackPath') {
       return true;
     }
 
-    if (process.argv.some(arg => arg.includes('webpack-dev-server'))) {
+    if (process.argv.some(arg => arg.includes('@rspackPath/dev-server'))) {
       return true;
     }
 
@@ -818,7 +819,7 @@ class WebpackAssetsManifest {
       let outputPath = get(this, 'compiler.options.devServer.outputPath', get(this, 'compiler.outputPath', '/'));
 
       if (outputPath === '/') {
-        warn.once('Please use an absolute path in options.output when using webpack-dev-server.');
+        warn.once('Please use an absolute path in options.output when using @rspack/dev-server.');
         outputPath = get(this, 'compiler.context', process.cwd());
       }
 
@@ -831,7 +832,7 @@ class WebpackAssetsManifest {
   /**
    * Get the public path for the filename
    *
-   * @param  {string} filename
+   * @param  {import('@rspack/core').Filename} filename
    */
   getPublicPath(filename) {
     if (typeof filename === 'string') {
@@ -858,7 +859,7 @@ class WebpackAssetsManifest {
    * This allows you to use `[]` to manage entries.
    *
    * @param {boolean} raw - Should the proxy use `setRaw` instead of `set`?
-   * @return {Proxy}
+   * @return {RspackAssetsManifest}
    */
   getProxy(raw = false) {
     const setMethod = raw ? 'setRaw' : 'set';
@@ -882,4 +883,4 @@ class WebpackAssetsManifest {
   }
 }
 
-module.exports = WebpackAssetsManifest;
+module.exports = RspackAssetsManifest;

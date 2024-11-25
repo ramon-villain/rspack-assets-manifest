@@ -1,7 +1,6 @@
 # Webpack Assets Manifest
 
-[![Node.js CI](https://github.com/webdeveric/webpack-assets-manifest/actions/workflows/node.js.yml/badge.svg)](https://github.com/webdeveric/webpack-assets-manifest/actions/workflows/node.js.yml)
-[![codecov](https://codecov.io/gh/webdeveric/webpack-assets-manifest/branch/master/graph/badge.svg)](https://codecov.io/gh/webdeveric/webpack-assets-manifest)
+[![Node.js CI](https://github.com/webdeveric/webpack-assets-manifest/actions/workflows/node.js.yml/badge.svg)](https://github.com/webdeveric/webpack-assets-manifest/actions/workflows/node.js.yml) [![codecov](https://codecov.io/gh/webdeveric/webpack-assets-manifest/branch/master/graph/badge.svg)](https://codecov.io/gh/webdeveric/webpack-assets-manifest)
 
 This webpack plugin will generate a JSON file that matches the original filename with the hashed version.
 
@@ -24,8 +23,7 @@ yarn add webpack-assets-manifest -D
 - Compatible with webpack 5 only (5.1+ required).
 - Supports finding [asset modules](https://webpack.js.org/guides/asset-modules/).
 - Updated options schema to prevent additional properties. This helps with catching typos in option names.
-- :warning: Updated default value of the `output` option to be `assets-manifest.json`.
-  This is to prevent confusion when working with [Web app manifests](https://developer.mozilla.org/en-US/docs/Web/Manifest) or [WebExtension manifests](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json).
+- :warning: Updated default value of the `output` option to be `assets-manifest.json`. This is to prevent confusion when working with [Web app manifests](https://developer.mozilla.org/en-US/docs/Web/Manifest) or [WebExtension manifests](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json).
 
 ## New in version 4
 
@@ -63,23 +61,23 @@ yarn add webpack-assets-manifest -D
 In your webpack config, require the plugin then add an instance to the `plugins` array.
 
 ```js
-const path = require("path");
-const WebpackAssetsManifest = require("webpack-assets-manifest");
+const path = require('path');
+const RspackAssetsManifest = require('rspack-assets-manifest');
 
 module.exports = {
   entry: {
     // Your entry points
   },
   output: {
-    path: path.join(__dirname, "dist"),
-    filename: "[name]-[hash].js",
-    chunkFilename: "[id]-[chunkhash].js",
+    path: path.join(__dirname, 'dist'),
+    filename: '[name]-[hash].js',
+    chunkFilename: '[id]-[chunkhash].js',
   },
   module: {
     // Your loader rules go here.
   },
   plugins: [
-    new WebpackAssetsManifest({
+    new RspackAssetsManifest({
       // Options go here
     }),
   ],
@@ -133,11 +131,11 @@ This is useful in [multi-compiler mode](https://github.com/webpack/webpack/tree/
 ```js
 const data = Object.create(null);
 
-const manifest1 = new WebpackAssetsManifest({
+const manifest1 = new RspackAssetsManifest({
   assets: data,
 });
 
-const manifest2 = new WebpackAssetsManifest({
+const manifest2 = new RspackAssetsManifest({
   assets: data,
 });
 ```
@@ -184,8 +182,7 @@ Default: `'auto'`
 
 Write the manifest to disk using `fs`.
 
-:warning: If you're using another language for your site and you're using `webpack-dev-server` to process your assets during development,
-you should set `writeToDisk: true` and provide an absolute path in `output` so the manifest file is actually written to disk and not kept only in memory.
+:warning: If you're using another language for your site and you're using `@rspack/dev-server` to process your assets during development, you should set `writeToDisk: true` and provide an absolute path in `output` so the manifest file is actually written to disk and not kept only in memory.
 
 ### `sortManifest`
 
@@ -195,12 +192,10 @@ Default: `true`
 
 The manifest is sorted alphabetically by default. You can turn off sorting by setting `sortManifest: false`.
 
-If you want more control over how the manifest is sorted, you can provide your own
-[comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Parameters).
-See the [sorted](examples/sorted.js) example.
+If you want more control over how the manifest is sorted, you can provide your own [comparison function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Parameters). See the [sorted](examples/sorted.js) example.
 
 ```js
-new WebpackAssetsManifest({
+new RspackAssetsManifest({
   sortManifest(a, b) {
     // Return -1, 0, or 1
   },
@@ -213,12 +208,11 @@ Type: `boolean`, `string`
 
 Default: `false`
 
-If the `output` file already exists and you'd like to add to it, use `merge: true`.
-The default behavior is to use the existing keys/values without modification.
+If the `output` file already exists and you'd like to add to it, use `merge: true`. The default behavior is to use the existing keys/values without modification.
 
 ```js
-new WebpackAssetsManifest({
-  output: "/path/to/manifest.json",
+new RspackAssetsManifest({
+  output: '/path/to/manifest.json',
   merge: true,
 });
 ```
@@ -228,7 +222,7 @@ If you need to customize during merge, use `merge: 'customize'`.
 If you want to know if `customize` was called when merging with an existing manifest, you can check `manifest.isMerging`.
 
 ```js
-new WebpackAssetsManifest({
+new RspackAssetsManifest({
   merge: 'customize',
   customize(entry, original, manifest, asset) {
     if ( manifest.isMerging ) {
@@ -244,10 +238,10 @@ Type: `string`, `function`, `boolean`,
 
 Default: `null`
 
-When using `publicPath: true`, your webpack config `output.publicPath` will be used as the value prefix.
+When using `publicPath: true`, your rspack config `output.publicPath` will be used as the value prefix.
 
 ```js
-const manifest = new WebpackAssetsManifest({
+const manifest = new RspackAssetsManifest({
   publicPath: true,
 });
 ```
@@ -255,15 +249,15 @@ const manifest = new WebpackAssetsManifest({
 When using a string, it will be the value prefix. One common use is to prefix your CDN URL.
 
 ```js
-const manifest = new WebpackAssetsManifest({
-  publicPath: "//cdn.example.com",
+const manifest = new RspackAssetsManifest({
+  publicPath: '//cdn.example.com',
 });
 ```
 
 If you'd like to have more control, use a function. See the [custom CDN](examples/custom-cdn.js) example.
 
 ```js
-const manifest = new WebpackAssetsManifest({
+const manifest = new RspackAssetsManifest({
   publicPath(filename, manifest) {
     // customize filename here
     return filename;
@@ -293,8 +287,7 @@ Type: `boolean`
 
 Default: `false`
 
-Entrypoint data should use the value from `assets`, which means the values could be customized and not just a `string` file path.
-This new option defaults to `false` so the new behavior is opt-in.
+Entrypoint data should use the value from `assets`, which means the values could be customized and not just a `string` file path. This new option defaults to `false` so the new behavior is opt-in.
 
 ### `integrity`
 
@@ -312,10 +305,7 @@ Default: `[ 'sha256', 'sha384', 'sha512' ]`
 
 Hash algorithms to use when generating SRI. For browsers, the currently the allowed integrity hashes are `sha256`, `sha384`, and `sha512`.
 
-Other hash algorithms can be used if your target environment is not a browser.
-If you were to create a tool to audit your S3 buckets for
-[data integrity](https://aws.amazon.com/premiumsupport/knowledge-center/data-integrity-s3/),
-you could use something like this [example](examples/aws-s3-data-integrity.js) to record the `md5` hashes.
+Other hash algorithms can be used if your target environment is not a browser. If you were to create a tool to audit your S3 buckets for [data integrity](https://aws.amazon.com/premiumsupport/knowledge-center/data-integrity-s3/), you could use something like this [example](examples/aws-s3-data-integrity.js) to record the `md5` hashes.
 
 ### `integrityPropertyName`
 
@@ -323,8 +313,7 @@ Type: `string`
 
 Default: `integrity`
 
-This is the property that will be set on each entry in `compilation.assets`, which will then be available during `customize`.
-It is customizable so that you can have multiple instances of this plugin and not have them overwrite the `currentAsset.integrity` property.
+This is the property that will be set on each entry in `compilation.assets`, which will then be available during `customize`. It is customizable so that you can have multiple instances of this plugin and not have them overwrite the `currentAsset.integrity` property.
 
 You'll probably only need to change this if you're using multiple instances of this plugin to create different manifests.
 
@@ -347,7 +336,7 @@ Callback to customize each entry in the manifest.
 You can use this to customize entry names for example. In the sample below, we adjust `img` keys so that it's easier to use them with a template engine:
 
 ```javascript
-new WebpackAssetsManifest({
+new RspackAssetsManifest({
   customize(entry) {
     if (entry.key.startsWith('img/')) {
       return { key: entry.key.split('img/')[1], value: entry.value };
@@ -382,7 +371,7 @@ Callback to run after the compilation is done and the manifest has been written.
 
 ### Hooks
 
-This plugin is using hooks from [Tapable](https://github.com/webpack/tapable/).
+This plugin is using hooks from [Tapable](https://github.com/@rspack/lite-tappable/).
 
 The `apply`, `customize`, `transform`, and `done` options are automatically tapped into the appropriate hook.
 
@@ -399,41 +388,37 @@ The `apply`, `customize`, `transform`, and `done` options are automatically tapp
 
 Tap into a hook by calling the `tap` method on the hook as shown below.
 
-If you want more control over exactly what gets added to your manifest, then use the `customize` and `transform` hooks.
-See the [customized](examples/customized.js) and [transformed](examples/transformed.js) examples.
+If you want more control over exactly what gets added to your manifest, then use the `customize` and `transform` hooks. See the [customized](examples/customized.js) and [transformed](examples/transformed.js) examples.
 
 ```js
-const manifest = new WebpackAssetsManifest();
+const manifest = new RspackAssetsManifest();
 
-manifest.hooks.apply.tap("YourPluginName", function (manifest) {
+manifest.hooks.apply.tap('YourPluginName', function (manifest) {
   // Do something here
-  manifest.set("some-key", "some-value");
+  manifest.set('some-key', 'some-value');
 });
 
-manifest.hooks.customize.tap(
-  "YourPluginName",
-  function (entry, original, manifest, asset) {
-    // customize entry here
-    return entry;
-  }
-);
+manifest.hooks.customize.tap('YourPluginName', function (entry, original, manifest, asset) {
+  // customize entry here
+  return entry;
+});
 
-manifest.hooks.transform.tap("YourPluginName", function (assets, manifest) {
+manifest.hooks.transform.tap('YourPluginName', function (assets, manifest) {
   // customize assets here
   return assets;
 });
 
-manifest.hooks.options.tap("YourPluginName", function (options) {
+manifest.hooks.options.tap('YourPluginName', function (options) {
   // customize options here
   return options;
 });
 
-manifest.hooks.done.tap("YourPluginName", function (manifest, stats) {
+manifest.hooks.done.tap('YourPluginName', function (manifest, stats) {
   console.log(`The manifest has been written to ${manifest.getOutputPath()}`);
   console.log(`${manifest}`);
 });
 
-manifest.hooks.done.tapPromise("YourPluginName", async (manifest, stats) => {
+manifest.hooks.done.tapPromise('YourPluginName', async (manifest, stats) => {
   await yourAsyncOperation();
 });
 ```
@@ -441,7 +426,7 @@ manifest.hooks.done.tapPromise("YourPluginName", async (manifest, stats) => {
 These hooks can also be set by passing them in the constructor options.
 
 ```js
-new WebpackAssetsManifest({
+new RspackAssetsManifest({
   done(manifest, stats) {
     console.log(`The manifest has been written to ${manifest.getOutputPath()}`);
     console.log(`${manifest}`);
@@ -462,9 +447,9 @@ If the manifest instance is passed to a hook, you can use the following methods 
 If you want to write the manifest to another location, you can use `writeTo(destination)`.
 
 ```js
-new WebpackAssetsManifest({
+new RspackAssetsManifest({
   async done(manifest) {
-    await manifest.writeTo("/some/other/path/assets-manifest.json");
+    await manifest.writeTo('/some/other/path/assets-manifest.json');
   },
 });
 ```

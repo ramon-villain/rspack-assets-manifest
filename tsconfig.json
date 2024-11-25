@@ -5,23 +5,15 @@
     "checkJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "lib": [
-      "es2017"
-    ],
+    "lib": ["es2017"],
     "module": "commonjs",
     "noEmit": true,
     "noImplicitThis": true,
     "resolveJsonModule": true,
     "strict": false,
     "target": "ES2017",
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "./src/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["./src/*"],
+  "exclude": ["node_modules"]
 }

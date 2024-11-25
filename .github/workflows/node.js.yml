@@ -13,9 +13,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-        webpack-version: ["5.2.0", 5]
-        dev-server-version: ["3.6.0", 3]
-        css-loader-version: ["3.5.0", latest]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v2
@@ -23,11 +20,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
+          cache: 'pnpm'
       - name: Installing dependencies
         run: pnpm install
       - name: Installing specific dependency versions
-        run: pnpm install webpack@${{ matrix.webpack-version }} webpack-dev-server@${{ matrix.dev-server-version }} css-loader@${{ matrix.css-loader-version }}
+        run: pnpm install @rspack/core @rspack/dev-server css-loader
       - name: Building (if needed)
         run: pnpm --if-present run build
       - name: Running tests

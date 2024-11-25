@@ -15,8 +15,7 @@ const lfUnlock = util.promisify(lockfile.unlock);
  *
  * @param {string} message
  */
-function warn( message )
-{
+function warn(message) {
   const prefix = chalk.hex('#CC4A8B')('WARNING:');
 
   console.warn(chalk`${prefix} ${message}`);
@@ -29,23 +28,22 @@ warn.cache = new Set();
  *
  * @param {string} message
  */
-warn.once = function( message ) {
-  if ( warn.cache.has( message ) ) {
+warn.once = function (message) {
+  if (warn.cache.has(message)) {
     return;
   }
 
-  warn( message );
+  warn(message);
 
-  warn.cache.add( message );
+  warn.cache.add(message);
 };
 
 /**
  * @param  {*} data
  * @return {array}
  */
-function maybeArrayWrap( data )
-{
-  return Array.isArray( data ) ? data : [ data ];
+function maybeArrayWrap(data) {
+  return Array.isArray(data) ? data : [data];
 }
 
 /**
@@ -54,12 +52,11 @@ function maybeArrayWrap( data )
  * @param  {array} hashes
  * @return {array} Valid hash algorithms
  */
-function filterHashes( hashes )
-{
+function filterHashes(hashes) {
   const validHashes = crypto.getHashes();
 
-  return hashes.filter( hash => {
-    if ( validHashes.includes(hash) ) {
+  return hashes.filter(hash => {
+    if (validHashes.includes(hash)) {
       return true;
     }
 
@@ -76,13 +73,16 @@ function filterHashes( hashes )
  * @param  {string} content - File contents you want to hash
  * @return {string} SRI hash
  */
-function getSRIHash( hashes, content )
-{
-  return Array.isArray( hashes ) ? hashes.map( hash => {
-    const integrity = crypto.createHash(hash).update(content, 'utf8').digest('base64');
+function getSRIHash(hashes, content) {
+  return Array.isArray(hashes)
+    ? hashes
+        .map(hash => {
+          const integrity = crypto.createHash(hash).update(content, 'utf8').digest('base64');
 
-    return `${hash}-${integrity}`;
-  }).join(' ') : '';
+          return `${hash}-${integrity}`;
+        })
+        .join(' ')
+    : '';
 }
 
 /**
@@ -91,8 +91,7 @@ function getSRIHash( hashes, content )
  * @param  {*} input - Some variable
  * @return {string} Data type
  */
-function varType( input )
-{
+function varType(input) {
   return Object.prototype.toString.call(input).slice(8, -1);
 }
 
@@ -101,9 +100,8 @@ function varType( input )
  *
  * @param {*} arg
  */
-function isObject( arg )
-{
-  return varType( arg ) === 'Object';
+function isObject(arg) {
+  return varType(arg) === 'Object';
 }
 
 /**
@@ -113,12 +111,10 @@ function isObject( arg )
  * @param  {(a: string, b: string) => number} compareFunction
  * @return {object}
  */
-function getSortedObject(object, compareFunction)
-{
-  return Object.keys( object ).sort( compareFunction ).reduce(
-    (sorted, key) => (sorted[ key ] = object[ key ], sorted),
-    Object.create(null),
-  );
+function getSortedObject(object, compareFunction) {
+  return Object.keys(object)
+    .sort(compareFunction)
+    .reduce((sorted, key) => ((sorted[key] = object[key]), sorted), Object.create(null));
 }
 
 /**
@@ -126,13 +122,10 @@ function getSortedObject(object, compareFunction)
  *
  * @param {Map} map
  */
-function findMapKeysByValue( map )
-{
-  const entries = [ ...map.entries() ];
+function findMapKeysByValue(map) {
+  const entries = [...map.entries()];
 
-  return searchValue => entries
-    .filter( ([ , value ]) => value === searchValue )
-    .map( ([ name ]) => name );
+  return searchValue => entries.filter(([, value]) => value === searchValue).map(([name]) => name);
 }
 
 /**
@@ -142,26 +135,21 @@ function findMapKeysByValue( map )
  * @param {(item: any) => string} getGroup
  * @param {(item: any, group: string) => any} mapper
  */
-function group( arr, getGroup, mapper = item => item )
-{
-  return arr.reduce(
-    (obj, item) => {
-      const group = getGroup( item );
+function group(arr, getGroup, mapper = item => item) {
+  return arr.reduce((obj, item) => {
+    const group = getGroup(item);
 
-      if ( group ) {
-        obj[ group ] = obj[ group ] || [];
-        obj[ group ].push( mapper( item, group ) );
-      }
+    if (group) {
+      obj[group] = obj[group] || [];
+      obj[group].push(mapper(item, group));
+    }
 
-      return obj;
-    },
-    Object.create(null),
-  );
+    return obj;
+  }, Object.create(null));
 }
 
-function md5( data )
-{
-  return crypto.createHash('md5').update( data ).digest('hex');
+function md5(data) {
+  return crypto.createHash('md5').update(data).digest('hex');
 }
 
 /**
@@ -169,12 +157,11 @@ function md5( data )
  *
  * @param {string} filename
  */
-function getLockFilename( filename )
-{
-  const name = path.basename( filename );
-  const dirHash = md5( path.dirname( filename ) );
+function getLockFilename(filename) {
+  const name = path.basename(filename);
+  const dirHash = md5(path.dirname(filename));
 
-  return path.join( os.tmpdir(), `${dirHash}-${name}.lock` );
+  return path.join(os.tmpdir(), `${dirHash}-${name}.lock`);
 }
 
 /**
@@ -182,17 +169,13 @@ function getLockFilename( filename )
  *
  * @param {string} filename
  */
-async function lock( filename )
-{
-  await lfLock(
-    getLockFilename( filename ),
-    {
-      wait: 6000,
-      retryWait: 100,
-      stale: 5000,
-      retries: 100,
-    },
-  );
+async function lock(filename) {
+  await lfLock(getLockFilename(filename), {
+    wait: 6000,
+    retryWait: 100,
+    stale: 5000,
+    retries: 100,
+  });
 }
 
 /**
@@ -200,9 +183,8 @@ async function lock( filename )
  *
  * @param {string} filename
  */
-async function unlock( filename )
-{
-  await lfUnlock( getLockFilename( filename ) );
+async function unlock(filename) {
+  await lfUnlock(getLockFilename(filename));
 }
 
 module.exports = {
