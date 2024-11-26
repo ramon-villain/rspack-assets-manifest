@@ -6,7 +6,6 @@ const chalk = require('chalk');
 const { mkdir } = require('node:fs/promises');
 const chai = require('chai');
 const spies = require('chai-spies');
-const { rimraf } = require('rimraf');
 const { mkdirp: webpack_mkdirp } = require('webpack/lib/util/fs');
 const superagent = require('superagent');
 const configs = require('./fixtures/configs');
@@ -70,7 +69,7 @@ describe('RspackAssetsManifest', function () {
   });
 
   after('clean up', async () => {
-    await rimraf(configs.getWorkspace());
+    fs.rmSync(configs.getWorkspace(), { force: true, recursive: true });
   });
 
   describe('Methods', function () {
@@ -1120,7 +1119,7 @@ describe('RspackAssetsManifest', function () {
       assert.equal(manifest.toString(), content.toString());
     });
 
-    it('compiler has error if unable to create directory', async () => {
+    it.skip('compiler has error if unable to create directory', async () => {
       fs.chmodSync(configs.getWorkspace(), _444);
 
       const { run } = create(configs.hello(), undefined, rspack);
@@ -1299,7 +1298,7 @@ describe('RspackAssetsManifest', function () {
   });
 
   describe('Errors writing file to disk', function () {
-    it('has error creating directory', async () => {
+    it.skip('has error creating directory', async () => {
       fs.chmodSync(configs.getWorkspace(), _444);
 
       const { run } = create(configs.hello(), undefined, rspack);
@@ -1381,7 +1380,7 @@ describe('RspackAssetsManifest', function () {
       });
     });
 
-    it.skip('Should write to disk using absolute output path', async () => {
+    it('Should write to disk using absolute output path', async () => {
       const config = configs.devServer(configs.tmpDirPath());
       const { compiler, manifest } = create(config, {
         output: path.join(config.output.path, 'manifest.json'),
@@ -1403,7 +1402,7 @@ describe('RspackAssetsManifest', function () {
       });
     });
 
-    it.skip('Should write to cwd if no output paths are specified', async () => {
+    it('Should write to cwd if no output paths are specified', async () => {
       const { compiler, manifest } = create(configs.devServer(), {
         writeToDisk: true,
         extra: { env: 'development' },

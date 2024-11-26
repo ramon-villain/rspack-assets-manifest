@@ -51,6 +51,7 @@
   },
   "prettier": "@webdeveric/prettier-config",
   "dependencies": {
+    "@types/fs-extra": "^11.0.4",
     "chalk": "^4.1.2",
     "deepmerge": "^4.3.1",
     "lockfile": "^1.0.4",
@@ -87,7 +88,6 @@
     "mocha": "^10.8.2",
     "nyc": "^15.1.0",
     "prettier": "^3.3.3",
-    "rimraf": "^5.0.10",
     "superagent": "^8.1.2",
     "typescript": "^5.7.2"
   }

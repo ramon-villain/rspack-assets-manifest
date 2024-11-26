@@ -5,3 +5,4 @@ coverage.lcov
 coverage/
 private/
 .idea/
+.DS_Store
