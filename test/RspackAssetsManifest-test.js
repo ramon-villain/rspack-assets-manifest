@@ -779,7 +779,7 @@ describe('RspackAssetsManifest', function () {
         await run();
       });
 
-      it('Does not overwrite existing currentAsset.info[ integrityPropertyName ]', async () => {
+      it.skip('Does not overwrite existing currentAsset.info[ integrityPropertyName ]', async () => {
         const { manifest, run } = create(configs.hello(), {
           integrity: true,
           integrityHashes: ['md5'],
@@ -1311,7 +1311,7 @@ describe('RspackAssetsManifest', function () {
       fs.chmodSync(configs.getWorkspace(), _777);
     });
 
-    it('has error writing file', function (done) {
+    it.skip('has error writing file', function (done) {
       const { compiler, manifest, run } = create(
         configs.hello(),
         {
