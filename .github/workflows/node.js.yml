@@ -31,9 +31,3 @@ jobs:
         run: pnpm test
       - name: Generating coverage report
         run: pnpm lcov
-      - name: Upload code coverage
-        uses: codecov/codecov-action@v4
-        with:
-          fail_ci_if_error: true
-          files: ./coverage.lcov
-          token: ${{ secrets.CODECOV_TOKEN }}
